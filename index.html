@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>Cut & Build — Fitness Tracker</title>
+<style>
+:root{--bg:#0b1020;--panel:#141c2f;--panel2:#1b2740;--text:#eef3ff;--muted:#9eacc7;--line:#2c3955;--accent:#7cdbb0;--blue:#7db8ff;--orange:#ffbf69;--danger:#ff8585}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#10192d,#090d18 60%);color:var(--text);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:0 0 calc(28px + env(safe-area-inset-bottom))}
+header{padding:26px 18px 18px;background:#111827;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.kicker{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);font-weight:800}
+h1{font-size:26px;margin:5px 0 2px}header p{margin:0;color:var(--muted);font-size:13px}
+nav{display:flex;gap:8px;overflow:auto;padding:12px 14px;background:#0d1424;position:sticky;top:105px;z-index:4}
+nav button{white-space:nowrap;background:var(--panel2);color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:9px 13px;font-weight:700}
+nav button.active{background:var(--accent);color:#092017;border-color:var(--accent)}
+main{max-width:850px;margin:auto;padding:14px}
+section{display:none}section.active{display:block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin:0 0 13px}
+h2{font-size:19px;margin:0 0 12px}h3{font-size:15px;margin:14px 0 8px}
+.muted,.hint{color:var(--muted);font-size:13px}.hint{margin-top:6px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{background:var(--panel2);padding:13px;border-radius:12px}.stat span{display:block;color:var(--muted);font-size:12px}.stat strong{font-size:23px;display:block;margin-top:3px}
+label{display:block;color:var(--muted);font-size:12px;font-weight:700;margin:9px 0 5px}
+input,select,textarea{width:100%;background:#0c1425;border:1px solid var(--line);border-radius:10px;padding:11px;color:var(--text);font:inherit;min-width:0}
+input[type=checkbox]{width:auto;accent-color:var(--accent);transform:scale(1.15);margin-right:8px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{font:inherit;cursor:pointer}
+.btn{border:0;border-radius:10px;background:var(--accent);color:#092017;font-weight:800;padding:11px 14px;margin-top:10px}
+.btn.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+.btn.danger{background:#4b202b;color:#ffdede}
+button:active{transform:scale(.99)}
+.progress{height:8px;background:#2a3650;border-radius:99px;overflow:hidden;margin:7px 0 12px}.progress div{height:100%;background:var(--accent);width:0}
+.macroline{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin-top:8px}
+.foodrow,.historyrow{border-top:1px solid var(--line);padding:10px 0;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.foodrow small{display:block;color:var(--muted)}
+.pill{display:inline-block;border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:3px 7px;font-size:11px;color:var(--muted)}
+.exercise{border-top:1px solid var(--line);padding:12px 0}
+.exercise:first-of-type{border-top:0}.exercise strong{display:block}.exercise .prescription{color:var(--accent);font-size:13px;font-weight:800}
+.exercise p{margin:4px 0;color:var(--muted);font-size:13px}
+.check{display:flex;align-items:center;margin-top:8px;color:var(--text);font-size:13px}
+.notice{border-left:3px solid var(--orange);padding:9px 12px;background:#29251f;border-radius:0 8px 8px 0;color:#f6dfbf;font-size:13px}
+.empty{color:var(--muted);font-size:13px;padding:12px 0}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:8px 20px}
+@media(min-width:650px){.grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}.foodform{grid-template-columns:2fr 1fr 1fr 1fr 1fr}.foodform .wide{grid-column:auto}}
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">Your personal dashboard</div>
+  <h1>Cut & Build</h1>
+  <p>Fat loss · strength · consistency</p>
+</header>
+<nav id="nav">
+  <button class="active" data-tab="today">Today</button>
+  <button data-tab="food">Food diary</button>
+  <button data-tab="workouts">Workouts</button>
+  <button data-tab="progress">Progress</button>
+  <button data-tab="settings">Settings</button>
+</nav>
+<main>
+<section id="today" class="active">
+  <div class="card">
+    <h2>Today's overview</h2>
+    <div class="row">
+      <div><label for="todayDate">Date</label><input type="date" id="todayDate"></div>
+      <div><label for="todayWeight">Morning weight (kg)</label><input type="number" id="todayWeight" min="0" step=".1" placeholder="e.g. 114.8"></div>
+    </div>
+    <button class="btn" id="saveToday">Save today's check-in</button>
+    <p class="hint">Weigh after using the toilet and before breakfast, when practical.</p>
+  </div>
+  <div class="grid four">
+    <div class="stat"><span>Calories</span><strong id="kcalNow">0</strong><span id="kcalTargetText">of 2,700 kcal</span></div>
+    <div class="stat"><span>Protein</span><strong id="proteinNow">0 g</strong><span>Target 190 g</span></div>
+    <div class="stat"><span>Carbs</span><strong id="carbsNow">0 g</strong><span>Target 304 g</span></div>
+    <div class="stat"><span>Fat</span><strong id="fatNow">0 g</strong><span>Target 80 g</span></div>
+  </div>
+  <div class="card" style="margin-top:13px">
+    <h2>Daily targets</h2>
+    <div class="macroline"><span>Calories</span><b id="kcalProgressText">0 / 2,700 kcal</b></div><div class="progress"><div id="kcalBar"></div></div>
+    <div class="macroline"><span>Protein</span><b id="proteinProgressText">0 / 190 g</b></div><div class="progress"><div id="proteinBar"></div></div>
+    <div class="macroline"><span>Carbohydrates</span><b id="carbsProgressText">0 / 304 g</b></div><div class="progress"><div id="carbsBar"></div></div>
+    <div class="macroline"><span>Fat</span><b id="fatProgressText">0 / 80 g</b></div><div class="progress"><div id="fatBar"></div></div>
+    <button class="btn secondary" onclick="switchTab('food')">+ Log food</button>
+  </div>
+  <div class="card">
+    <h2>Quick check-in</h2>
+    <label for="energy">Energy at work / gym</label><select id="energy"><option>Good</option><option selected>Normal</option><option>Low / struggling</option></select>
+    <label for="adherence">How close were you to your calorie target?</label><select id="adherence"><option>Consistently on target</option><option selected>Mostly on target</option><option>Often over target</option></select>
+    <label for="notes">Notes (sleep, hunger, hard workday, etc.)</label><textarea id="notes" rows="2" placeholder="Optional notes…"></textarea>
+    <button class="btn" id="saveCheckin">Save check-in notes</button>
+  </div>
+</section>
+
+<section id="food">
+  <div class="card">
+    <h2>Food diary</h2>
+    <p class="muted">Add the nutrition shown on the packet or a reliable food database. Totals update automatically. This version does not have a built-in searchable food database.</p>
+    <div class="row">
+      <div><label for="foodDate">Diary date</label><input id="foodDate" type="date"></div>
+      <div><label for="meal">Meal</label><select id="meal"><option>Breakfast</option><option>Morning tea</option><option>Lunch</option><option>Afternoon tea</option><option>Dinner</option><option>Snack</option></select></div>
+    </div>
+    <label for="foodName">Food / drink</label><input id="foodName" placeholder="e.g. chicken breast, 150 g cooked">
+    <div class="row">
+      <div><label for="foodKcal">Calories (kcal)</label><input id="foodKcal" type="number" min="0" step="1" placeholder="250"></div>
+      <div><label for="foodProtein">Protein (g)</label><input id="foodProtein" type="number" min="0" step=".1" placeholder="35"></div>
+      <div><label for="foodCarbs">Carbs (g)</label><input id="foodCarbs" type="number" min="0" step=".1" placeholder="10"></div>
+      <div><label for="foodFat">Fat (g)</label><input id="foodFat" type="number" min="0" step=".1" placeholder="5"></div>
+    </div>
+    <button class="btn" id="addFood">Add food to diary</button>
+  </div>
+  <div class="card">
+    <h2 id="foodListTitle">Today's food</h2>
+    <div id="foodList" class="empty">No foods logged for this date yet.</div>
+    <div class="grid">
+      <div class="stat"><span>Total calories</span><strong id="foodTotalKcal">0</strong></div>
+      <div class="stat"><span>Protein</span><strong id="foodTotalProtein">0 g</strong></div>
+      <div class="stat"><span>Carbohydrates</span><strong id="foodTotalCarbs">0 g</strong></div>
+      <div class="stat"><span>Fat</span><strong id="foodTotalFat">0 g</strong></div>
+    </div>
+    <button class="btn secondary" id="exportFood">Export food diary (CSV)</button>
+  </div>
+</section>
+
+<section id="workouts">
+  <div class="card">
+    <h2>3-day full-body program</h2>
+    <p class="muted">Train on non-consecutive days where possible, such as Monday / Wednesday / Friday. Alternate A and B each session.</p>
+    <div class="row">
+      <div><label for="workoutDay">Workout</label><select id="workoutDay"><option value="A">Workout A</option><option value="B">Workout B</option></select></div>
+      <div><label for="workoutDate">Session date</label><input type="date" id="workoutDate"></div>
+    </div>
+    <div class="notice">First 1–2 weeks: use light, controlled weights and consider doing only two working sets per exercise while you get back into it. Finish most sets with 2–3 good reps left.</div>
+    <div id="exerciseList"></div>
+    <label for="workoutNotes">Session notes (weights used, soreness, etc.)</label><textarea id="workoutNotes" rows="2" placeholder="e.g. leg press 60 kg, felt good"></textarea>
+    <button class="btn" id="saveWorkout">Save completed session</button>
+  </div>
+  <div class="card">
+    <h2>Recent sessions</h2><div id="workoutHistory" class="empty">No sessions saved yet.</div>
+  </div>
+</section>
+
+<section id="progress">
+  <div class="card">
+    <h2>Weekly progress report</h2>
+    <p class="muted">Use morning weights and compare weekly averages, not single readings. Aim initially for about 0.3–0.8 kg loss per week, while maintaining energy and strength.</p>
+    <div class="row">
+      <div><label for="reportStart">Week starting</label><input type="date" id="reportStart"></div>
+      <div><label for="waist">Waist measurement (cm)</label><input type="number" id="waist" min="0" step=".1" placeholder="Optional"></div>
+    </div>
+    <div class="grid">
+      <div class="stat"><span>Weight average</span><strong id="avgWeight">—</strong><span id="weighCount">No weights this week</span></div>
+      <div class="stat"><span>Change vs previous week</span><strong id="weightChange">—</strong><span>Based on saved weigh-ins</span></div>
+      <div class="stat"><span>Gym sessions</span><strong id="sessionCount">0 / 3</strong><span>Saved this week</span></div>
+      <div class="stat"><span>Food entries</span><strong id="foodEntryCount">0</strong><span>In selected week</span></div>
+    </div>
+    <div class="card" style="margin-top:13px;background:var(--panel2)">
+      <h2>Weight trend</h2>
+      <p class="muted">Every saved weigh-in, with a line to make the overall trend easier to spot.</p>
+      <div id="weightChart" aria-label="Weight trend chart"></div>
+      <div id="weightHistory" class="empty">Your saved weigh-ins will appear here.</div>
+    </div>
+    <div class="card" style="margin-top:13px;background:var(--panel2)">
+      <h2>Weekly averages</h2>
+      <p class="muted">Compare week-to-week averages to reduce the noise from normal daily fluctuations.</p>
+      <div id="weeklyAverages" class="empty">Log a few weigh-ins to see weekly averages.</div>
+    </div>
+    <div class="card" style="margin-top:13px;background:var(--panel2)">
+      <h2>Gym progress over time</h2>
+      <p class="muted">Shows your saved exercise notes/weights and whether you checked each exercise off. Enter weights in the workout notes for useful comparisons.</p>
+      <div id="gymProgressHistory" class="empty">Save a workout to start building your gym history.</div>
+    </div>
+    <label for="weekReflection">Weekly reflection</label><textarea id="weekReflection" rows="3" placeholder="What went well? Hunger, energy, strength, sleep, barriers…"></textarea>
+    <button class="btn" id="saveReport">Save weekly report</button>
+    <button class="btn secondary" id="exportData">Export all data (JSON backup)</button>
+    <div id="reportHistory"></div>
+  </div>
+  <div class="card">
+    <h2>How to adjust</h2>
+    <ul class="muted" style="padding-left:20px">
+      <li>Keep calories at 2,700 if average weight is trending down and you feel okay.</li>
+      <li>If there is no meaningful loss for 2–3 weeks and food tracking is consistent, consider reducing by around 150–200 kcal/day.</li>
+      <li>If weight drops quickly and you feel depleted or weaker, consider adding 150–250 kcal/day and reviewing recovery.</li>
+      <li>If weight is stable but waist is shrinking and strength is improving, usually keep the plan unchanged.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="settings">
+  <div class="card">
+    <h2>Your targets</h2>
+    <p class="muted">Starting targets from your plan. Change these if your plan is adjusted.</p>
+    <div class="row">
+      <div><label for="targetKcal">Calories (kcal)</label><input id="targetKcal" type="number" min="500" max="6000"></div>
+      <div><label for="targetProtein">Protein (g)</label><input id="targetProtein" type="number" min="0" max="400"></div>
+      <div><label for="targetCarbs">Carbs (g)</label><input id="targetCarbs" type="number" min="0" max="800"></div>
+      <div><label for="targetFat">Fat (g)</label><input id="targetFat" type="number" min="0" max="300"></div>
+    </div>
+    <button class="btn" id="saveTargets">Save targets</button>
+  </div>
+  <div class="card">
+    <h2>Data and privacy</h2>
+    <p class="muted">Your entries are stored in this browser on this device. They are not synced to another phone or browser. Clearing browser data, using private browsing, or some file-preview modes may erase or prevent saving. Export a backup regularly.</p>
+    <button class="btn secondary" id="importButton">Import JSON backup</button><input id="importFile" type="file" accept=".json,application/json" hidden>
+    <button class="btn danger" id="clearData">Erase all tracker data</button>
+  </div>
+</section>
+</main>
+<footer>Made for your plan · Estimates are guides, not medical advice. Log portions accurately and adjust based on trends.</footer>
+<script>
+(function(){
+'use strict';
+const KEY='cutBuildTracker_v1';
+const defaults={targets:{kcal:2700,protein:190,carbs:304,fat:80},foods:[],weights:[],checkins:[],sessions:[],reports:[]};
+let data=loadData();
+function loadData(){try{return Object.assign(structuredClone(defaults),JSON.parse(localStorage.getItem(KEY)||'{}'));}catch(e){return JSON.parse(JSON.stringify(defaults));}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data));}catch(e){alert('This browser may not allow local saving in this viewing mode. Try hosting the HTML as a website and opening it in Safari/Chrome. Export a backup if possible.');}}
+function $(id){return document.getElementById(id)}
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function num(v){return Math.max(0,Number(v)||0)}
+function fmt(v){return Math.round(v).toLocaleString('en-AU')}
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function sumFoods(date){return data.foods.filter(f=>f.date===date).reduce((a,f)=>({kcal:a.kcal+f.kcal,protein:a.protein+f.protein,carbs:a.carbs+f.carbs,fat:a.fat+f.fat}),{kcal:0,protein:0,carbs:0,fat:0})}
+function setBar(id,value,target){$(id).style.width=Math.min(100,target?value/target*100:0)+'%'}
+function renderToday(){
+ const date=$('todayDate').value||today();const s=sumFoods(date),t=data.targets;
+ $('kcalNow').textContent=fmt(s.kcal);$('proteinNow').textContent=fmt(s.protein)+' g';$('carbsNow').textContent=fmt(s.carbs)+' g';$('fatNow').textContent=fmt(s.fat)+' g';
+ $('kcalTargetText').textContent='of '+fmt(t.kcal)+' kcal';
+ [['kcal',s.kcal,t.kcal],['protein',s.protein,t.protein],['carbs',s.carbs,t.carbs],['fat',s.fat,t.fat]].forEach(([k,v,target])=>{$(k+'ProgressText').textContent=fmt(v)+' / '+fmt(target)+(k==='kcal'?' kcal':' g');setBar(k+'Bar',v,target)});
+ const w=data.weights.find(x=>x.date===date);$('todayWeight').value=w?w.weight:'';
+ const c=data.checkins.find(x=>x.date===date);if(c){$('energy').value=c.energy||'Normal';$('adherence').value=c.adherence||'Mostly on target';$('notes').value=c.notes||'';}
+}
+function renderFood(){
+ const date=$('foodDate').value||today();const list=data.foods.filter(f=>f.date===date);$('foodListTitle').textContent=date===today()?"Today's food":'Food for '+date;
+ $('foodList').innerHTML=list.length?list.map(f=>`<div class="foodrow"><div><b>${escapeHtml(f.name)}</b><small>${escapeHtml(f.meal)} · ${fmt(f.kcal)} kcal · P ${fmt(f.protein)}g / C ${fmt(f.carbs)}g / F ${fmt(f.fat)}g</small></div><button class="btn danger" style="margin:0;padding:7px 10px" data-delete-food="${f.id}">Delete</button></div>`).join(''):'<div class="empty">No foods logged for this date yet.</div>';
+ const s=sumFoods(date);$('foodTotalKcal').textContent=fmt(s.kcal);$('foodTotalProtein').textContent=fmt(s.protein)+' g';$('foodTotalCarbs').textContent=fmt(s.carbs)+' g';$('foodTotalFat').textContent=fmt(s.fat)+' g';
+}
+const workouts={
+ A:[['Leg press','3 × 8–12','Controlled depth; don’t lock knees.'],['Machine chest press','3 × 8–12','Keep shoulders comfortable and controlled.'],['Lat pulldown','3 × 8–12','Pull toward upper chest without swinging.'],['Dumbbell Romanian deadlift','2 × 8–10','Start light; hinge at hips and keep back neutral.'],['Seated cable row','2 × 10–12','Pull smoothly without rocking.'],['Plank','2 × 20–45 sec','Stop before your lower back sags.']],
+ B:[['Goblet squat to comfortable depth','3 × 8–12','Use a box/bench target if useful.'],['Incline dumbbell press','3 × 8–12','Use a controllable range of motion.'],['Chest-supported row','3 × 8–12','Pause briefly with shoulder blades back.'],['Seated or lying leg curl','3 × 10–15','Control both directions.'],['Machine shoulder press','2 × 8–12','Skip or modify if shoulder pain occurs.'],['Cable triceps pushdown','2 × 10–15','Keep elbows near your sides.'],['Dumbbell biceps curl','2 × 10–15','Avoid swinging.']]
+};
+function renderExercises(){
+ const type=$('workoutDay').value;const saved=data.sessions.find(s=>s.date===$('workoutDate').value&&s.type===type);
+ $('exerciseList').innerHTML=workouts[type].map((e,i)=>`<div class="exercise"><strong>${escapeHtml(e[0])}</strong><span class="prescription">${escapeHtml(e[1])}</span><p>${escapeHtml(e[2])}</p><label>Weight used / notes (optional)</label><input data-exercise-note="${i}" placeholder="e.g. 40 kg" value="${escapeHtml(saved?.exercises?.[i]?.note||'')}"><label class="check"><input type="checkbox" data-exercise-done="${i}" ${saved?.exercises?.[i]?.done?'checked':''}> Completed</label></div>`).join('');
+ $('workoutNotes').value=saved?.notes||'';
+}
+function weekStart(date){const d=new Date(date+'T12:00:00');const day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function shiftDate(date,days){const d=new Date(date+'T12:00:00');d.setDate(d.getDate()+days);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function renderProgress(){
+ const start=weekStart($('reportStart').value||today()),end=shiftDate(start,6);$('reportStart').value=start;
+ const ws=data.weights.filter(w=>w.date>=start&&w.date<=end);const avg=ws.length?ws.reduce((a,w)=>a+w.weight,0)/ws.length:null;
+ const prevStart=shiftDate(start,-7),prevEnd=shiftDate(start,-1),prev=data.weights.filter(w=>w.date>=prevStart&&w.date<=prevEnd);const pavg=prev.length?prev.reduce((a,w)=>a+w.weight,0)/prev.length:null;
+ $('avgWeight').textContent=avg===null?'—':avg.toFixed(1)+' kg';$('weighCount').textContent=ws.length+' weigh-in'+(ws.length===1?'':'s');
+ $('weightChange').textContent=avg===null||pavg===null?'—':(avg-pavg>0?'+':'')+(avg-pavg).toFixed(1)+' kg';
+ $('sessionCount').textContent=data.sessions.filter(s=>s.date>=start&&s.date<=end).length+' / 3';
+ $('foodEntryCount').textContent=data.foods.filter(f=>f.date>=start&&f.date<=end).length;
+ const r=data.reports.find(x=>x.start===start);$('waist').value=r?.waist||'';$('weekReflection').value=r?.reflection||'';
+ $('reportHistory').innerHTML=data.reports.slice().sort((a,b)=>b.start.localeCompare(a.start)).map(r=>`<div class="historyrow"><div><b>Week of ${escapeHtml(r.start)}</b><small class="muted" style="display:block">${r.avg!==null?r.avg.toFixed(1)+' kg average':'No weight average'} · ${escapeHtml(r.waist||'—')} cm waist</small><small>${escapeHtml(r.reflection||'')}</small></div><button class="btn secondary" style="margin:0;padding:7px 10px" data-open-report="${r.start}">Open</button></div>`).join('')||'<div class="empty">No weekly reports saved yet.</div>';
+ renderWeightHistory();renderWeeklyAverages();renderGymProgress();
+}
+function renderWeightHistory(){
+ const all=data.weights.slice().sort((a,b)=>a.date.localeCompare(b.date));
+ $('weightHistory').innerHTML=all.length?all.slice().reverse().map(w=>`<div class="historyrow"><div><b>${escapeHtml(w.date)}</b><small class="muted" style="display:block">${Number(w.weight).toFixed(1)} kg</small></div></div>`).join(''):'<div class="empty">No weigh-ins saved yet. Add one in Today to get started.</div>';
+ const el=$('weightChart');
+ if(all.length<2){el.innerHTML=all.length?`<p class="muted">One weigh-in saved: <b>${Number(all[0].weight).toFixed(1)} kg</b>. Add another to see the trend line.</p>`:'<div class="empty">Your weight chart will appear after you save at least two weigh-ins.</div>';return;}
+ const W=320,H=170,L=38,R=10,T=14,B=28,vals=all.map(w=>Number(w.weight)),lo=Math.min(...vals),hi=Math.max(...vals),pad=Math.max((hi-lo)*.18,.5),min=lo-pad,max=hi+pad;
+ const pts=all.map((w,i)=>({x:L+i*(W-L-R)/(all.length-1),y:T+(max-Number(w.weight))*(H-T-B)/(max-min),w}));
+ const points=pts.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+ const first=all[0].date.slice(5),last=all[all.length-1].date.slice(5);
+ el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Weight trend from ${escapeHtml(all[0].date)} to ${escapeHtml(all[all.length-1].date)}" style="width:100%;height:auto;display:block"><line x1="${L}" y1="${T}" x2="${L}" y2="${H-B}" stroke="var(--line)"/><line x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}" stroke="var(--line)"/><text x="3" y="${T+5}" fill="var(--muted)" font-size="10">${max.toFixed(1)}</text><text x="3" y="${H-B}" fill="var(--muted)" font-size="10">${min.toFixed(1)}</text><polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>${pts.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="var(--accent)"><title>${escapeHtml(p.w.date)}: ${Number(p.w.weight).toFixed(1)} kg</title></circle>`).join('')}<text x="${L}" y="${H-7}" fill="var(--muted)" font-size="10">${escapeHtml(first)}</text><text x="${W-R}" y="${H-7}" text-anchor="end" fill="var(--muted)" font-size="10">${escapeHtml(last)}</text></svg><p class="muted">${all.length} weigh-ins · ${Number(all[0].weight).toFixed(1)} kg first to ${Number(all[all.length-1].weight).toFixed(1)} kg latest</p>`;
+}
+function renderWeeklyAverages(){
+ const groups={};data.weights.forEach(w=>{const st=weekStart(w.date);(groups[st]||(groups[st]=[])).push(Number(w.weight));});
+ const rows=Object.keys(groups).sort((a,b)=>b.localeCompare(a));
+ $('weeklyAverages').innerHTML=rows.length?rows.map(st=>{const arr=groups[st],avg=arr.reduce((a,v)=>a+v,0)/arr.length;return `<div class="historyrow"><div><b>Week of ${escapeHtml(st)}</b><small class="muted" style="display:block">${arr.length} weigh-in${arr.length===1?'':'s'}</small></div><strong>${avg.toFixed(1)} kg</strong></div>`}).join(''):'<div class="empty">Log a few weigh-ins to see weekly averages.</div>';
+}
+function renderGymProgress(){
+ const rows=[];data.sessions.slice().sort((a,b)=>b.date.localeCompare(a.date)).forEach(s=>(s.exercises||[]).forEach(e=>{if(e.done||String(e.note||'').trim())rows.push({date:s.date,type:s.type,name:e.name||'Exercise',done:!!e.done,note:e.note||''});}));
+ $('gymProgressHistory').innerHTML=rows.length?rows.map(e=>`<div class="historyrow"><div><b>${escapeHtml(e.name)}</b><small class="muted" style="display:block">${escapeHtml(e.date)} · Workout ${escapeHtml(e.type)} · ${e.done?'Completed':'Not checked off'}</small>${e.note?`<small>${escapeHtml(e.note)}</small>`:''}</div></div>`).join(''):'<div class="empty">No exercise history yet. Save workouts and add weights to the exercise notes to track strength over time.</div>';
+}
+function renderSettings(){['kcal','protein','carbs','fat'].forEach(k=>$('target'+k[0].toUpperCase()+k.slice(1)).value=data.targets[k]);}
+function renderHistory(){
+ const list=data.sessions.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8);
+ $('workoutHistory').innerHTML=list.length?list.map(s=>`<div class="historyrow"><div><b>${escapeHtml(s.type)} · ${escapeHtml(s.date)}</b><small class="muted" style="display:block">${s.exercises.filter(e=>e.done).length}/${s.exercises.length} exercises checked off</small><small>${escapeHtml(s.notes||'')}</small></div><button class="btn secondary" style="margin:0;padding:7px 10px" data-edit-session="${s.date}|${s.type}">Edit</button></div>`).join(''):'<div class="empty">No sessions saved yet.</div>';
+}
+function renderAll(){renderToday();renderFood();renderExercises();renderHistory();renderProgress();renderSettings()}
+function switchTab(id){document.querySelectorAll('section').forEach(s=>s.classList.toggle('active',s.id===id));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));if(id==='today')renderToday();if(id==='food')renderFood();if(id==='workouts'){renderExercises();renderHistory()}if(id==='progress')renderProgress();window.scrollTo({top:0,behavior:'smooth'})}
+window.switchTab=switchTab;
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+$('todayDate').value=today();$('foodDate').value=today();$('workoutDate').value=today();$('reportStart').value=weekStart(today());
+$('todayDate').addEventListener('change',renderToday);$('foodDate').addEventListener('change',renderFood);$('reportStart').addEventListener('change',renderProgress);$('workoutDay').addEventListener('change',renderExercises);$('workoutDate').addEventListener('change',renderExercises);
+$('saveToday').addEventListener('click',()=>{const date=$('todayDate').value||today(),weight=num($('todayWeight').value);if(weight){data.weights=data.weights.filter(w=>w.date!==date);data.weights.push({date,weight});save();renderProgress();alert('Weight saved.');}else alert('Enter a weight first, or leave it blank if you do not want to record one.');});
+$('saveCheckin').addEventListener('click',()=>{const date=$('todayDate').value||today(),c={date,energy:$('energy').value,adherence:$('adherence').value,notes:$('notes').value};data.checkins=data.checkins.filter(x=>x.date!==date);data.checkins.push(c);save();alert('Check-in notes saved.');});
+$('addFood').addEventListener('click',()=>{const name=$('foodName').value.trim();if(!name){alert('Enter a food or drink name.');return;}const f={id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),date:$('foodDate').value||today(),meal:$('meal').value,name,kcal:num($('foodKcal').value),protein:num($('foodProtein').value),carbs:num($('foodCarbs').value),fat:num($('foodFat').value)};data.foods.push(f);save();$('foodName').value='';['foodKcal','foodProtein','foodCarbs','foodFat'].forEach(id=>$(id).value='');renderFood();renderToday();});
+$('foodList').addEventListener('click',e=>{const b=e.target.closest('[data-delete-food]');if(!b)return;data.foods=data.foods.filter(f=>f.id!==b.dataset.deleteFood);save();renderFood();renderToday();});
+$('saveWorkout').addEventListener('click',()=>{const date=$('workoutDate').value||today(),type=$('workoutDay').value;const exercises=workouts[type].map((e,i)=>({name:e[0],done:document.querySelector(`[data-exercise-done="${i}"]`)?.checked||false,note:document.querySelector(`[data-exercise-note="${i}"]`)?.value||''}));const s={date,type,exercises,notes:$('workoutNotes').value};data.sessions=data.sessions.filter(x=>!(x.date===date&&x.type===type));data.sessions.push(s);save();renderHistory();renderProgress();alert('Workout session saved.');});
+$('workoutHistory').addEventListener('click',e=>{const b=e.target.closest('[data-edit-session]');if(!b)return;const [date,type]=b.dataset.editSession.split('|');$('workoutDate').value=date;$('workoutDay').value=type;renderExercises();window.scrollTo({top:0,behavior:'smooth'});});
+$('saveReport').addEventListener('click',()=>{const start=weekStart($('reportStart').value||today()),end=shiftDate(start,6),ws=data.weights.filter(w=>w.date>=start&&w.date<=end),avg=ws.length?ws.reduce((a,w)=>a+w.weight,0)/ws.length:null;const r={start,avg,waist:$('waist').value,reflection:$('weekReflection').value};data.reports=data.reports.filter(x=>x.start!==start);data.reports.push(r);save();renderProgress();alert('Weekly report saved.');});
+$('reportHistory').addEventListener('click',e=>{const b=e.target.closest('[data-open-report]');if(!b)return;$('reportStart').value=b.dataset.openReport;renderProgress();});
+$('saveTargets').addEventListener('click',()=>{data.targets={kcal:num($('targetKcal').value)||2700,protein:num($('targetProtein').value),carbs:num($('targetCarbs').value),fat:num($('targetFat').value)};save();renderAll();alert('Targets saved.');});
+function download(name,content,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+$('exportData').addEventListener('click',()=>download('cut-build-backup-'+today()+'.json',JSON.stringify(data,null,2),'application/json'));
+$('exportFood').addEventListener('click',()=>{const rows=[['date','meal','food','calories_kcal','protein_g','carbs_g','fat_g'],...data.foods.filter(f=>f.date===($('foodDate').value||today())).map(f=>[f.date,f.meal,f.name,f.kcal,f.protein,f.carbs,f.fat])];const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');download('food-diary-'+($('foodDate').value||today())+'.csv',csv,'text/csv');});
+$('importButton').addEventListener('click',()=>$('importFile').click());
+$('importFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const obj=JSON.parse(await f.text());if(!obj.targets||!Array.isArray(obj.foods)||!Array.isArray(obj.weights))throw Error('Invalid backup');data=Object.assign(JSON.parse(JSON.stringify(defaults)),obj);save();renderAll();alert('Backup imported.');}catch(err){alert('Could not import that file. Choose a JSON backup exported from this tracker.');}e.target.value='';});
+$('clearData').addEventListener('click',()=>{if(confirm('Erase all food logs, weights, workouts and reports saved in this browser? Export a backup first if you want to keep them.')){data=JSON.parse(JSON.stringify(defaults));save();renderAll();alert('Tracker data erased.');}});
+renderAll();
+})();
+</script>
+</body>
+</html>
